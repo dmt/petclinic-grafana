@@ -82,13 +82,12 @@ jobs:
       #     cache-from: type=gha
       #     cache-to: type=gha,mode=max
 
-      - name: Set up JDK 20
+      - name: Set up JDK
         uses: actions/setup-java@v4.0.0
         with:
           java-version: '21'
           distribution: 'corretto'
-          cache: maven
-      - name: Build with Maven
+      - name: Build
         run: ./make.sh
 
       # Sign the resulting Docker image digest except on PRs.
