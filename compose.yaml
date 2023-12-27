@@ -1,0 +1,96 @@
+version: '3'
+services:
+  postgres:
+    image: postgres:14.2
+    container_name: postgres
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_PASSWORD=petclinic
+      - POSTGRES_USER=petclinic
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+  petclinic:
+    depends_on:
+      - postgres
+    image: petclinic:test
+    # run as root to be able to write log files into the mount. meh
+    user: root
+    container_name: petclinic
+    environment:
+      - SPRING_PROFILES_ACTIVE=postgres,o11y,file
+      - POSTGRES_URL=jdbc:postgresql://postgres/petclinic
+    ports:
+      - "8080:8080"
+    networks:
+      default:
+        aliases:
+          - backend
+    volumes:
+      - app_logs:/workspace/logs
+
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    command: [
+      "--config.file=/etc/prometheus/prometheus.yml",
+      "--enable-feature=exemplar-storage",
+      "--web.enable-remote-write-receiver"
+    ]
+    ports:
+      - "9090:9090"
+    restart: unless-stopped
+    volumes:
+      - ./compose/config/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prom_data:/prometheus
+  grafana:
+    image: grafana/grafana:latest-ubuntu
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=grafana
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_FEATURE_TOGGLES_ENABLE=traceToMetrics,featureToggleAdminPage
+    volumes:
+      # Pre-load the data sources
+      - ./compose/config/grafana-datasources.yml:/etc/grafana/provisioning/datasources/datasources.yaml:rw
+      # Pre-load the Hello Observability dashboard
+      - ./compose/grafana/dashboards:/etc/grafana/provisioning/dashboards
+  tempo:
+    image: grafana/tempo:latest
+    container_name: tempo
+    command: [ "-config.file=/etc/tempo.yaml" ]
+    volumes:
+      - ./compose/config/tempo-local.yaml:/etc/tempo.yaml
+      - tempo_data:/tmp/tempo
+    ports:
+      - "9411:9411"   # zipkin
+  promtail:
+    image: grafana/promtail:latest
+    container_name: promtail
+    command: [ "-config.file=/etc/promtail/config.yaml" ]
+    depends_on:
+      - petclinic
+    volumes:
+      - ./compose/config/promtail.yaml:/etc/promtail/config.yaml
+      # mount logs from the app's container
+      - app_logs:/mnt/container/logs:ro
+      - tail_data:/tmp
+  loki:
+    image: grafana/loki:latest
+    container_name: loki
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+
+volumes:
+  db_data:
+  prom_data:
+  tempo_data:
+  tail_data:
+  app_logs:

@@ -1,0 +1,31 @@
+
+positions:
+  filename: /tmp/positions.yaml
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+
+scrape_configs:
+  - job_name: local
+    pipeline_stages:
+# we only extract timestamp and level/logger/thread as extra labels and leave the actual logline unchanged
+# you could reset the output to the message and extract trace and span ids but apparently loki also has to worry about
+# cardinality of labels. So the trace id gets extracted as a derived value in the grafana datasource config
+      - json:
+          expressions:
+            timestamp: '"@timestamp"'
+            level:
+            logger_name:
+            thread_name:
+      - labels:
+          level:
+          logger_name:
+          thread_name:
+      - timestamp:
+          source: timestamp
+          format: RFC3339Nano
+
+    static_configs:
+      - labels:
+          job: containerlog
+          __path__: /mnt/container/logs/*.jsonl

@@ -1,0 +1,37 @@
+<configuration>
+
+    <include resource="org/springframework/boot/logging/logback/base.xml" />
+    <property name="LOGS" value="./logs" />
+    <springProperty scope="context" name="application.name" source="spring.application.name" defaultValue="petclinic" />
+    <appender name="jsonConsoleAppender" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder" />
+    </appender>
+
+    <springProfile name="file">
+        <appender name="jsonFileAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+            <file>${LOGS}/${application.name}.jsonl</file>
+            <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+                <!-- rollover daily -->
+                <fileNamePattern>${LOGS}/${application.name}-%d{yyyy-MM-dd}.%i.jsonl</fileNamePattern>
+                <!-- each file should be at most 100MB, keep 10 days worth of history, but at most 1GB -->
+                <maxFileSize>100MB</maxFileSize>
+                <maxHistory>10</maxHistory>
+                <totalSizeCap>1GB</totalSizeCap>
+            </rollingPolicy>
+            <encoder class="net.logstash.logback.encoder.LogstashEncoder" />
+        </appender>
+        <root level="INFO">
+            <appender-ref ref="CONSOLE" />
+            <appender-ref ref="jsonFileAppender" />
+        </root>
+    </springProfile>
+
+    <!-- The logging for this is pretty excessive but it's maybe quite useful for debugging clients -->
+    <logger name="org.zalando.logbook" level="TRACE" />
+
+    <springProfile name="!file">
+        <root level="INFO">
+            <appender-ref ref="CONSOLE" />
+        </root>
+    </springProfile>
+</configuration>

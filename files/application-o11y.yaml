@@ -1,0 +1,25 @@
+management.endpoints.web.exposure.include: '*'
+management:
+  zipkin:
+    tracing:
+      endpoint: http://tempo:9411/api/v2/spans
+  tracing:
+    sampling:
+      probability: 1.0
+  metrics:
+    distribution:
+      percentiles-histogram:
+        all: true
+
+logbook:
+  predicate:
+    exclude:
+      - path: /actuator/**
+  strategy: body-only-if-status-at-least
+  minimum-status: 400
+  attribute-extractors:
+    - type: JwtFirstMatchingClaimExtractor
+      claim-names: [ "sub", "subject" ]
+      claim-key: Principal
+    - type: JwtAllMatchingClaimsExtractor
+      claim-names: [ "sub", "iat" ]
