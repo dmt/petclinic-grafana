@@ -1,10 +1,10 @@
 #!/bin/bash
 
-#if ! docker image inspect petclinic:test &>/dev/null; then
-#	git clone https://github.com/spring-projects/spring-petclinic.git
-#fi
+if ! docker image inspect petclinic:test &>/dev/null; then
+	git clone https://github.com/spring-projects/spring-petclinic.git
+fi
 
-cd spring-petclinic
+cd spring-petclinic || exit 1
 git stash push --include-untracked -m "auto stash"
 cp ../files/rewrite.yml ../files/versions-rules.xml .
 cp ../files/application-o11y.yaml ../files/logback-spring.xml src/main/resources
