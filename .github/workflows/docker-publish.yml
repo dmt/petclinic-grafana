@@ -89,16 +89,24 @@ jobs:
           distribution: 'corretto'
       - name: Build
         shell: bash
+        id: build-image
         run: |
           git clone https://github.com/spring-projects/spring-petclinic.git
           cd spring-petclinic || exit 1
           cp ../files/rewrite.yml ../files/versions-rules.xml .
           cp ../files/application-o11y.yaml ../files/logback-spring.xml src/main/resources
-          ./mvnw -U org.openrewrite.maven:rewrite-maven-plugin:run -Drewrite.activeRecipes=me.dtem.AddDependencies -Dcheckstyle.skip
-          ./mvnw versions:update-properties -DincludeProperties="zipkin-reporter-brave.version,datasource-micrometer-spring-boot.version,logstash-logback-encoder.version,logbook.version" -Dcheckstyle.skip
-          ./mvnw package spring-boot:build-image -DskipTests -Dspring-boot.build-image.imageName=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }} -Dcheckstyle.skip
-           echo ${{ steps.meta.outputs.tags }} | xargs docker tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-          docker push --all-tags ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          ./mvnw -B -ntp -U org.openrewrite.maven:rewrite-maven-plugin:run -Drewrite.activeRecipes=me.dtem.AddDependencies -Dcheckstyle.skip
+          ./mvnw -B -ntp versions:update-properties -DincludeProperties="zipkin-reporter-brave.version,datasource-micrometer-spring-boot.version,logstash-logback-encoder.version,logbook.version" -Dcheckstyle.skip
+          ./mvnw -B -ntp package spring-boot:build-image -DskipTests -Dspring-boot.build-image.imageName=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }} -Dcheckstyle.skip
+          echo ${{ steps.meta.outputs.tags }} | xargs docker tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          docker push --quiet --all-tags ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          echo huh
+          set -x
+          echo "foo=$(docker images --format='{{.Digest}}' ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }})"
+          echo meh
+          echo "DIGEST=$(docker images --format='{{.Digest}}' ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }})" >> $GITHUB_OUTPUT
+          set +x
+          echo boo
 
 # Sign the resulting Docker image digest except on PRs.
       # This will only write to the public Rekor transparency log when the Docker
@@ -110,7 +118,7 @@ jobs:
         env:
           # https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions#using-an-intermediate-environment-variable
           TAGS: ${{ steps.meta.outputs.tags }}
-          DIGEST: ${{ steps.build-and-push.outputs.digest }}
+          DIGEST: ${{ steps.build-image.outputs.DIGEST }}
         # This step uses the identity token to provision an ephemeral certificate
         # against the sigstore community Fulcio instance.
         run: echo "${TAGS}" | xargs -I {} cosign sign --yes {}@${DIGEST}
