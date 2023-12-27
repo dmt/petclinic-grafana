@@ -100,13 +100,7 @@ jobs:
           ./mvnw -B -ntp package spring-boot:build-image -DskipTests -Dspring-boot.build-image.imageName=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }} -Dcheckstyle.skip
           echo ${{ steps.meta.outputs.tags }} | xargs docker tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           docker push --quiet --all-tags ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-          echo huh
-          set -x
-          echo "foo=$(docker images --format='{{.Digest}}' ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }})"
-          echo meh
-          echo "DIGEST=$(docker images --format='{{.Digest}}' ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }})" >> $GITHUB_OUTPUT
-          set +x
-          echo boo
+          echo "DIGEST=$(docker images --format='{{.Digest}}' ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }} | head -n1)" >> $GITHUB_OUTPUT
 
 # Sign the resulting Docker image digest except on PRs.
       # This will only write to the public Rekor transparency log when the Docker
