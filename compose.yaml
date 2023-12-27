@@ -14,7 +14,7 @@ services:
   petclinic:
     depends_on:
       - postgres
-    image: ghcr.io/danielt-ent/petclinic-grafana:latest
+    image: ghcr.io/dmt/petclinic-grafana:latest
     # run as root to be able to write log files into the mount. meh
     user: root
     container_name: petclinic
