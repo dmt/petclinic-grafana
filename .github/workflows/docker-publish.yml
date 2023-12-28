@@ -104,3 +104,22 @@ jobs:
         # This step uses the identity token to provision an ephemeral certificate
         # against the sigstore community Fulcio instance.
         run: echo "${TAGS}" | xargs -I {} cosign sign --yes {}@${DIGEST}
+
+  test:
+    needs:
+      - build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Compose up
+        shell: bash
+        id: compose-up
+        run: |
+          docker compose up -d
+      - name: Test
+        timeout-minutes: 2
+        shell: bash
+        run: |
+          ./test.sh

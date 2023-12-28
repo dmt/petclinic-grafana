@@ -21,6 +21,10 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=postgres,o11y,file
       - POSTGRES_URL=jdbc:postgresql://postgres/petclinic
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8080/actuator/health" ]
+      timeout: 5s
+      retries: 3
     ports:
       - "8080:8080"
     networks:
@@ -65,11 +69,14 @@ services:
     image: grafana/tempo:latest
     container_name: tempo
     command: [ "-config.file=/etc/tempo.yaml" ]
+    # tempo seems to take 30s to shutdown. Who's got that much time?
+    stop_grace_period: 2s
     volumes:
       - ./compose/config/tempo-local.yaml:/etc/tempo.yaml
       - tempo_data:/tmp/tempo
     ports:
       - "9411:9411"   # zipkin
+      - "3200:3200"   # http
   promtail:
     image: grafana/promtail:latest
     container_name: promtail
