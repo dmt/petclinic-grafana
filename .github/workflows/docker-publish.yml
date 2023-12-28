@@ -84,7 +84,7 @@ jobs:
         shell: bash
         id: publish-image
         run: |
-          echo "${{ steps.meta.outputs.tags }}" | xargs docker tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          echo "${{ steps.meta.outputs.tags }}" | xargs -I {} docker tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }} {}
           docker push --quiet --all-tags ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           echo "DIGEST=$(docker images --format='{{.Digest}}' ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }} | head -n1)" >> $GITHUB_OUTPUT
 
