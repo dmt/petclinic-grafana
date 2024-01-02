@@ -1,9 +1,10 @@
 name: Docker
 
-# This workflow uses actions that are not certified by GitHub.
-# They are provided by a third-party and are governed by
-# separate terms of service, privacy policy, and support
-# documentation.
+# parts of this are copy pasted from various sample github actions
+# main goals:
+# - build spring's petclinic project with a few additions for observability and push it as a custom docker image
+# - make sure the docker compose file in this repo starts up correctly
+# - some steps to sign the built image have been deactivated. This was just copy pasted but seems interesting
 
 on:
   schedule:
@@ -73,20 +74,28 @@ jobs:
         shell: bash
         id: build-image
         run: |
+          # always work off of the most up to date petclinic sample
           git clone https://github.com/spring-projects/spring-petclinic.git
           cd spring-petclinic || exit 1
-          cp ../files/rewrite.yml ../files/versions-rules.xml .
-          cp ../files/application-o11y.yaml ../files/logback-spring.xml src/main/resources
+          # copy recipe for open rewrite and config for maven versions plugin
+          cp ../petclinic-build-files/rewrite.yml ../petclinic-build-files/versions-rules.xml .
+          # copy logbook and observability spring config and json logback config
+          cp ../petclinic-build-files/application-o11y.yaml ../petclinic-build-files/logback-spring.xml src/main/resources
+          # add logbook and micrometer dependencies for metrics and tracing
           ./mvnw -B -ntp -U org.openrewrite.maven:rewrite-maven-plugin:run -Drewrite.activeRecipes=me.dtem.AddDependencies -Dcheckstyle.skip
+          # make sure the added dependencies are up to date (maybe should fail build if actually changed?)
           ./mvnw -B -ntp versions:update-properties -DincludeProperties="zipkin-reporter-brave.version,datasource-micrometer-spring-boot.version,logstash-logback-encoder.version,logbook.version" -Dcheckstyle.skip
+          # build the spring project and create the docker image 
           ./mvnw -B -ntp package spring-boot:build-image -DskipTests -Dspring-boot.build-image.imageName=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }} -Dcheckstyle.skip
       - name: Publish
         if: ${{ github.event_name != 'pull_request' }}
         shell: bash
         id: publish-image
         run: |
+          # add tags created by github (nightly, vsemver, branch name)
           echo "${{ steps.meta.outputs.tags }}" | xargs -I {} docker tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }} {}
           docker push --quiet --all-tags ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          # save the digest of the pushed image (used by signing) 
           echo "DIGEST=$(docker images --format='{{.Digest}}' ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }} | head -n1)" >> $GITHUB_OUTPUT
 
       # Sign the resulting Docker image digest except on PRs.
@@ -122,4 +131,5 @@ jobs:
         timeout-minutes: 2
         shell: bash
         run: |
+          # does a bunch of basic health checks on exposed endpoints
           ./test.sh
