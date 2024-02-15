@@ -3,9 +3,6 @@
     <include resource="org/springframework/boot/logging/logback/base.xml" />
     <property name="LOGS" value="./logs" />
     <springProperty scope="context" name="application.name" source="spring.application.name" defaultValue="petclinic" />
-    <appender name="jsonConsoleAppender" class="ch.qos.logback.core.ConsoleAppender">
-        <encoder class="net.logstash.logback.encoder.LogstashEncoder" />
-    </appender>
 
     <appender name="jsonFileAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${LOGS}/${application.name}.jsonl</file>
