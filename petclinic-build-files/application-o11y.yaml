@@ -10,6 +10,15 @@ management:
     distribution:
       percentiles-histogram:
         all: true
+  observations:
+    annotations:
+      enabled: true
+
+# https://github.com/spring-projects/spring-boot/issues/39600
+micrometer:
+  observations:
+    annotations:
+      enabled: true
 
 logbook:
   predicate:
