@@ -10,6 +10,8 @@ services:
       - POSTGRES_USER=petclinic
     volumes:
       - db_data:/var/lib/postgresql/data
+    networks:
+      - petnet
 
   petclinic:
     depends_on:
@@ -21,14 +23,10 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=postgres,o11y
       - POSTGRES_URL=jdbc:postgresql://postgres/petclinic
-    healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8080/actuator/health" ]
-      timeout: 5s
-      retries: 3
     ports:
       - "8080:8080"
     networks:
-      default:
+      petnet:
         aliases:
           - backend
     volumes:
@@ -40,7 +38,8 @@ services:
     command: [
       "--config.file=/etc/prometheus/prometheus.yml",
       "--enable-feature=exemplar-storage",
-      "--web.enable-remote-write-receiver"
+      "--web.enable-remote-write-receiver",
+      "--enable-feature=native-histograms"
     ]
     ports:
       - "9090:9090"
@@ -48,6 +47,8 @@ services:
     volumes:
       - ./compose/config/prometheus.yml:/etc/prometheus/prometheus.yml
       - prom_data:/prometheus
+    networks:
+      - petnet
   grafana:
     image: grafana/grafana:latest-ubuntu
     container_name: grafana
@@ -65,6 +66,8 @@ services:
       - ./compose/config/grafana-datasources.yml:/etc/grafana/provisioning/datasources/datasources.yaml:rw
       # Pre-load the Hello Observability dashboard
       - ./compose/grafana/dashboards:/etc/grafana/provisioning/dashboards
+    networks:
+      - petnet
   tempo:
     image: grafana/tempo:latest
     container_name: tempo
@@ -77,6 +80,8 @@ services:
     ports:
       - "9411:9411"   # zipkin
       - "3200:3200"   # http
+    networks:
+      - petnet
   promtail:
     image: grafana/promtail:latest
     container_name: promtail
@@ -88,12 +93,39 @@ services:
       # mount logs from the app's container
       - app_logs:/mnt/container/logs:ro
       - tail_data:/tmp
+    networks:
+      - petnet
   loki:
     image: grafana/loki:latest
     container_name: loki
     ports:
       - "3100:3100"
     command: -config.file=/etc/loki/local-config.yaml
+    networks:
+      - petnet
+
+  k6:
+    image: grafana/k6:master-with-browser
+    command: [
+      "run",
+      "-o",
+      "experimental-prometheus-rw",
+      "script.js"
+    ]
+    container_name: k6-tests
+    restart: "no"
+    volumes:
+      - .:/app
+    working_dir: /app
+    environment:
+      - K6_PROMETHEUS_RW_SERVER_URL=http://prometheus:9090/api/v1/write
+      - K6_PROMETHEUS_RW_TREND_AS_NATIVE_HISTOGRAM=true
+    depends_on:
+      - petclinic
+    networks:
+      - petnet
+    profiles:
+      - k6-tests
 
 volumes:
   db_data:
@@ -101,3 +133,6 @@ volumes:
   tempo_data:
   tail_data:
   app_logs:
+
+networks:
+  petnet:

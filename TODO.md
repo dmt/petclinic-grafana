@@ -2,3 +2,4 @@
 - ~~recover the docker compose test scripts I previously created to test whether the setup works~~done
 - add playwright tests/scripts to create sample data
 - see if that can be used for long running k6 tests
+- since curl isn't in the image, maybe figure out a different way to healthcheck petclinic
