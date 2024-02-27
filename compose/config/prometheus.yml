@@ -10,5 +10,4 @@ scrape_configs:
   scheme: http
   static_configs:
   - targets:
-#    - backend:8080
     - host.docker.internal:8080
