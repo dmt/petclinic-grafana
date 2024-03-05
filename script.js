@@ -1,17 +1,32 @@
 import http from 'k6/http';
-import { sleep } from 'k6';
+import {check} from 'k6';
 
 export const options = {
-  // A number specifying the number of VUs to run concurrently.
-  // vus: 10,
-  // A string specifying the total duration of the test run.
-  // duration: '30s',
-  stages: [
-    { duration: '10s', target: 10 },
-    { duration: '30s', target: 30 },
-    { duration: '20s', target: 0 },
-  ],
+  scenarios: {
+    owners: {
+      executor: 'ramping-arrival-rate',
 
+      // Start iterations per `timeUnit`
+      startRate: 100,
+
+      // Start `startRate` iterations per second
+      timeUnit: '1s',
+
+      // Pre-allocate necessary VUs.
+      preAllocatedVUs: 600,
+
+      stages: [
+        // Start 100 iterations per `timeUnit` for the first minute.
+        {target: 100, duration: '1m'},
+
+        // Linearly ramp-up to starting 300 iterations per `timeUnit` over the following two minutes.
+        {target: 300, duration: '2m'},
+
+        // Linearly ramp-down to starting 60 iterations per `timeUnit` over the last two minutes.
+        {target: 60, duration: '2m'},
+      ],
+    },
+  },
   // Uncomment this section to enable the use of Browser API in your tests.
   //
   // See https://grafana.com/docs/k6/latest/using-k6-browser/running-browser-tests/ to learn more
@@ -44,6 +59,14 @@ export const options = {
 // about authoring k6 scripts.
 //
 export default function() {
-  http.get('http://petclinic:8080');
-  sleep(1);
+  const params = {timeout: '10s'};
+  const res = http.get('http://petclinic:8080/owners?lastName=', params);
+  check(res, {
+
+    'is status 200': (r) => r.status === 200,
+
+    'includes owner results': (r) => r.body.includes('Peter McTavish')
+
+  });
+  const res2 = http.get('http://petclinic:8080/', params);
 }
