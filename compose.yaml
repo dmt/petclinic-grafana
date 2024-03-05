@@ -21,7 +21,7 @@ services:
     user: root
     container_name: petclinic
     environment:
-      - SPRING_PROFILES_ACTIVE=postgres,o11y
+      - SPRING_PROFILES_ACTIVE=postgres,o11y,local
       - POSTGRES_URL=jdbc:postgresql://postgres/petclinic
     ports:
       - "8080:8080"
@@ -29,6 +29,7 @@ services:
       petnet:
     volumes:
       - app_logs:/workspace/logs
+      - ./compose/spring:/workspace/config
 
   prometheus:
     image: prom/prometheus
@@ -64,6 +65,8 @@ services:
       - ./compose/config/grafana-datasources.yml:/etc/grafana/provisioning/datasources/datasources.yaml:rw
       # Pre-load the Hello Observability dashboard
       - ./compose/grafana/dashboards:/etc/grafana/provisioning/dashboards
+      # internal storage for among other things annotations
+      - grafana_data:/var/lib/grafana
     networks:
       - petnet
   tempo:
@@ -131,6 +134,7 @@ volumes:
   tempo_data:
   tail_data:
   app_logs:
+  grafana_data:
 
 networks:
   petnet:

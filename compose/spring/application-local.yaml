@@ -1,0 +1,24 @@
+management:
+  endpoint:
+    configprops:
+      show-values: ALWAYS
+    env:
+      show-values: ALWAYS
+  tracing:
+    sampling:
+      probability: 0.01
+
+spring:
+  datasource:
+    hikari:
+      connection-timeout: 500
+      maximum-pool-size: 10
+
+server:
+  tomcat:
+    threads:
+      max: 200
+    accept-count: 10
+    max-connections: 300
+    mbeanregistry:
+      enabled: true
