@@ -1,0 +1,9 @@
+{
+  "version": "1",
+  "name": "petclinic",
+  "type": "collection",
+  "presets": {
+    "requestType": "http",
+    "requestUrl": "{{host}}"
+  }
+}
