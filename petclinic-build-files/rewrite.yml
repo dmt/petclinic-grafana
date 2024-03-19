@@ -65,21 +65,21 @@ recipeList:
       groupId: org.codehaus.mojo
       artifactId: versions-maven-plugin
       configuration: <configuration><rulesUri>file://${session.executionRootDirectory}/versions-rules.xml</rulesUri><generateBackupPoms>false</generateBackupPoms></configuration>
-#  - org.openrewrite.maven.AddDependency:
-#      groupId: io.micrometer
-#      artifactId: micrometer-tracing-bridge-brave
-#      scope: runtime
-#      releasesOnly: true
-#      acceptTransitive: true
-#  - org.openrewrite.maven.AddDependency:
-#      groupId: io.micrometer
-#      artifactId: micrometer-tracing-bridge-brave
-#      scope: runtime
-#      releasesOnly: true
-#      acceptTransitive: true
-#  - org.openrewrite.maven.AddDependency:
-#      groupId: io.micrometer
-#      artifactId: micrometer-tracing-bridge-brave
-#      scope: runtime
-#      releasesOnly: true
-#      acceptTransitive: true
+  - org.openrewrite.maven.AddPlugin:
+      groupId: com.google.cloud.tools
+      artifactId: jib-maven-plugin
+      configuration: |-  
+        <configuration>
+          <from>
+          <platforms>
+          <platform>
+          <architecture>amd64</architecture>
+          <os>linux</os>
+          </platform>
+          <platform>
+          <architecture>arm64</architecture>
+          <os>linux</os>
+          </platform>
+          </platforms>
+          </from>
+        </configuration>

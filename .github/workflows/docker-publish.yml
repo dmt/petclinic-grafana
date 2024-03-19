@@ -86,7 +86,7 @@ jobs:
           # make sure the added dependencies are up to date (maybe should fail build if actually changed?)
           ./mvnw -B -ntp versions:update-properties -DincludeProperties="zipkin-reporter-brave.version,datasource-micrometer-spring-boot.version,logstash-logback-encoder.version,logbook.version" -Dcheckstyle.skip
           # build the spring project and create the docker image 
-          ./mvnw -B -ntp package spring-boot:build-image -DskipTests -Dspring-boot.build-image.imageName=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }} -Dcheckstyle.skip
+          ./mvnw -B -ntp package jib:build -DskipTests -Dimage=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }} -Dcheckstyle.skip
       - name: Publish
         if: ${{ github.event_name != 'pull_request' }}
         shell: bash
