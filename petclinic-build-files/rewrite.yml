@@ -13,6 +13,9 @@ recipeList:
       key: logstash-logback-encoder.version
       value: "7.4"
   - org.openrewrite.maven.AddProperty:
+      key: jib-maven-plugin.version
+      value: "3.4.1"
+  - org.openrewrite.maven.AddProperty:
       key: logbook.version
       value: "3.7.2"
   - org.openrewrite.maven.AddDependency:
@@ -68,6 +71,7 @@ recipeList:
   - org.openrewrite.maven.AddPlugin:
       groupId: com.google.cloud.tools
       artifactId: jib-maven-plugin
+      version: ${jib-maven-plugin.version}
       configuration: |-  
         <configuration>
           <from>

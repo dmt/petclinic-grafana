@@ -84,11 +84,12 @@ jobs:
           # add logbook and micrometer dependencies for metrics and tracing
           ./mvnw -B -ntp -U org.openrewrite.maven:rewrite-maven-plugin:run -Drewrite.activeRecipes=me.dtem.AddDependencies -Dcheckstyle.skip
           # make sure the added dependencies are up to date (maybe should fail build if actually changed?)
-          ./mvnw -B -ntp versions:update-properties -DincludeProperties="zipkin-reporter-brave.version,datasource-micrometer-spring-boot.version,logstash-logback-encoder.version,logbook.version" -Dcheckstyle.skip
+          ./mvnw -B -ntp versions:update-properties -DincludeProperties="zipkin-reporter-brave.version,datasource-micrometer-spring-boot.version,logstash-logback-encoder.version,logbook.version,jib-maven-plugin.version" -Dcheckstyle.skip
           # build the spring project and create the docker image 
           ./mvnw -B -ntp package jib:build -DskipTests -Dimage=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }} -Dcheckstyle.skip
       - name: Publish
-        if: ${{ github.event_name != 'pull_request' }}
+#        if: ${{ github.event_name != 'pull_request' }}
+        if: false
         shell: bash
         id: publish-image
         run: |
