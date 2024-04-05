@@ -3,6 +3,10 @@ services:
   postgres:
     image: postgres:14.2
     container_name: postgres
+    deploy:
+      resources:
+        limits:
+          cpus: '0.1'
     ports:
       - "5432:5432"
     environment:
@@ -21,6 +25,7 @@ services:
     # run as root to be able to write log files into the mount. meh
     user: root
     container_name: petclinic
+    working_dir: /app
     restart: unless-stopped
     environment:
       - SPRING_PROFILES_ACTIVE=postgres,o11y,local
@@ -31,8 +36,8 @@ services:
     networks:
       petnet:
     volumes:
-      - app_logs:/workspace/logs
-      - ./compose/spring:/workspace/config
+      - app_logs:/app/logs
+      - ./compose/spring:/app/config
 
   prometheus:
     image: prom/prometheus

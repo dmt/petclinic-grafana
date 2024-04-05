@@ -11,14 +11,14 @@ management:
 spring:
   datasource:
     hikari:
-      connection-timeout: 500
-      maximum-pool-size: 10
+      connection-timeout: 5000
+      maximum-pool-size: 2
 
 server:
   tomcat:
-    threads:
-      max: 200
-    accept-count: 10
-    max-connections: 300
+#    threads:
+#      max: 200
+#    accept-count: 10
+#    max-connections: 3000
     mbeanregistry:
       enabled: true

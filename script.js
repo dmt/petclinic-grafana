@@ -1,4 +1,5 @@
 import http from 'k6/http';
+import exec from 'k6/execution';
 import {check} from 'k6';
 
 export const options = {
@@ -7,23 +8,23 @@ export const options = {
       executor: 'ramping-arrival-rate',
 
       // Start iterations per `timeUnit`
-      startRate: 100,
+      startRate: 50,
 
       // Start `startRate` iterations per second
       timeUnit: '1s',
 
       // Pre-allocate necessary VUs.
-      preAllocatedVUs: 600,
+      preAllocatedVUs: 1000,
 
       stages: [
-        // Start 100 iterations per `timeUnit` for the first minute.
-        {target: 100, duration: '1m'},
+        // ramp up iterations per `timeUnit` for the first minute.
+        {target: 800, duration: '1m'},
 
-        // Linearly ramp-up to starting 300 iterations per `timeUnit` over the following two minutes.
-        {target: 300, duration: '2m'},
+        // keep going
+        {target: 800, duration: '2m'},
 
-        // Linearly ramp-down to starting 60 iterations per `timeUnit` over the last two minutes.
-        {target: 60, duration: '2m'},
+        // Linearly ramp-down
+        {target: 50, duration: '1m'},
       ],
     },
   },
@@ -60,13 +61,14 @@ export const options = {
 //
 export default function() {
   const params = {timeout: '10s'};
-  const res = http.get('http://petclinic:8080/owners?lastName=', params);
-  check(res, {
-
-    'is status 200': (r) => r.status === 200,
-
-    'includes owner results': (r) => r.body.includes('Peter McTavish')
-
-  });
-  const res2 = http.get('http://petclinic:8080/', params);
+  // https://grafana.com/docs/k6/latest/examples/distribute-workloads/
+  if (exec.vu.idInTest % 2 === 0) {
+    const res = http.get('http://petclinic:8080/owners?lastName=', params);
+    check(res, {
+      'is status 200': (r) => r.status === 200,
+      'includes owner results': (r) => r.body.includes('Peter McTavish')
+    });
+  } else {
+    const res = http.get('http://petclinic:8080/', params);
+  }
 }
