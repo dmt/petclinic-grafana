@@ -1,5 +1,8 @@
+# from https://raw.githubusercontent.com/grafana/tempo/main/example/docker-compose/shared/tempo.yaml
+stream_over_http_enabled: true
 server:
   http_listen_port: 3200
+  log_level: info
 
 query_frontend:
   search:

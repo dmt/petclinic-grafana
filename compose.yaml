@@ -16,6 +16,7 @@ services:
   petclinic:
     depends_on:
       - postgres
+      - tempo
     image: ghcr.io/dmt/petclinic-grafana:latest
     # run as root to be able to write log files into the mount. meh
     user: root
@@ -73,6 +74,9 @@ services:
     command: [ "-config.file=/etc/tempo.yaml" ]
     # tempo seems to take 30s to shut down. Who's got that much time?
     stop_grace_period: 2s
+    # to be able to write to the data mount
+    user: root
+    restart: unless-stopped
     volumes:
       - ./compose/config/tempo-local.yaml:/etc/tempo.yaml
       - tempo_data:/tmp/tempo
