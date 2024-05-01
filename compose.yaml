@@ -112,7 +112,12 @@ services:
     container_name: loki
     ports:
       - "3100:3100"
-    command: -config.file=/etc/loki/local-config.yaml
+    command: [
+      "-config.file=/etc/loki/local-config.yaml",
+      "-ingester.max-global-streams-per-user=0",
+      "-distributor.ingestion-rate-limit-mb=100",
+      "-reporting.enabled=false"
+    ]
     networks:
       - petnet
 
