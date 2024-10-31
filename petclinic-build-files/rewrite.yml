@@ -8,16 +8,16 @@ recipeList:
       value: "2.17.1"
   - org.openrewrite.maven.AddProperty:
       key: datasource-micrometer-spring-boot.version
-      value: "1.0.3"
+      value: "1.0.5"
   - org.openrewrite.maven.AddProperty:
       key: logstash-logback-encoder.version
-      value: "7.4"
+      value: "8.0"
   - org.openrewrite.maven.AddProperty:
       key: jib-maven-plugin.version
-      value: "3.4.1"
+      value: "3.4.4"
   - org.openrewrite.maven.AddProperty:
       key: logbook.version
-      value: "3.7.2"
+      value: "3.9.0"
   - org.openrewrite.maven.AddDependency:
       groupId: io.micrometer
       artifactId: micrometer-tracing-bridge-brave
