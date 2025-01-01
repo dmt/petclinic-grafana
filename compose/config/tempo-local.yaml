@@ -20,6 +20,7 @@ distributor:
         thrift_binary:
         thrift_compact:
     zipkin:
+      endpoint: tempo:9411
     otlp:
       protocols:
         http:

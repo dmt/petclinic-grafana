@@ -4,9 +4,9 @@ management:
       show-values: ALWAYS
     env:
       show-values: ALWAYS
-  tracing:
-    sampling:
-      probability: 0.01
+  # tracing:
+  #   sampling:
+  #     probability: 0.01
 
 spring:
   datasource:
