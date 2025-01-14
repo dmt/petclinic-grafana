@@ -1,3 +1,7 @@
+[Accompanying blog post](https://blog.dtem.me/2024/05/devconf-2024.html)
+
+----
+
 Use the spring petclinic project to showcase some of the grafana stack and observaibility things in general.
 
 The github action builds a modified version of the spring petclinic project. It will check out the spring petclinic sample project and use open rewrite to add the necessary maven dependencies for tracing and metrics and then add corresponding logback and application config. 
